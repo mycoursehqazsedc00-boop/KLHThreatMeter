@@ -42,34 +42,6 @@ KLHThreatMeter behaves exactly as stock.
 not used** — nothing in it touches combat, auras, or unit identity, so
 there's no gap in KLHThreatMeter it would fill.
 
-## Applying the patch
-
-1. Clone or download [laytya/KLHThreatMeter](https://github.com/laytya/KLHThreatMeter)
-   as normal, and install it in `Interface/Addons/` per its own instructions.
-2. Copy `KTM_ModernAPI.lua` from this repo into
-   `KLHThreatMeter/Code/KTM_ModernAPI.lua`.
-3. Open `KLHThreatMeter.toc` and add one line — see `toc_patch.txt` in this
-   repo for the exact placement:
-   ```
-   Code\KTM_Core.lua
-   Code\KTM_ModernAPI.lua        <-- add this line
-   ...
-   Code\KTM_Combat.lua
-   Code\KTM_CombatParser.lua
-   ```
-   The entry must read exactly `Code\KTM_ModernAPI.lua` — a version without
-   the `Code\` prefix will fail to load silently, with no error.
-4. `/reload` or relog.
-
-### Reapplying after an upstream update
-
-Since this stays separate from the addon's own repo, updating
-KLHThreatMeter is just re-cloning/re-downloading it and repeating steps 2–3
-above — nothing to merge or rebase. If upstream ever renames or restructures
-`Code\KTM_Combat.lua` / `KTM_CombatParser.lua`, this patch may need updating
-to match (see "How it works" below for exactly which internals it depends
-on).
-
 ## Setup for the client mods themselves
 
 1. Get a DLL loader — [VanillaFixes](https://github.com/hannesmann/vanillafixes)
