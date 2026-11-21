@@ -39,10 +39,16 @@ go into combat by initiating an attack, the +combat event can come after the act
 ]]
 --! This variable is referenced by these modules: my, 
 me.recentattacks = { } 
+me.lastattackcleanup = 0
 
 me.onupdate = function()
 
 	local timenow = GetTime()
+	if timenow < me.lastattackcleanup + 0.1 then
+		return
+	end
+	me.lastattackcleanup = timenow
+
 	local key
 	local value
 

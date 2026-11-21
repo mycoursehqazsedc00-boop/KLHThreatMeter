@@ -1,117 +1,42 @@
-# KTM_ModernAPI — client-mod compat patch for KLHThreatMeter
+# KLHThreatMeter (Patched for WoW 1.12 / Turtle WoW)
 
-An optional, standalone patch that adds support for a few community client
-mods to [laytya/KLHThreatMeter](https://github.com/laytya/KLHThreatMeter)
-(itself a fork of
-[KenKaprielian/KLHThreatMeter](https://github.com/KenKaprielian/KLHThreatMeter)),
-so it can pull real structured combat data instead of relying entirely on
-regex-parsed chat text.
+> Threat meter for Vanilla WoW 1.12 / Turtle WoW (`LaYt` edition) with client-mod integration (`KTM_ModernAPI`), Turtle WoW Threat API (`KTM_TWT`), and performance optimizations.
 
-**This repo is not a fork of KLHThreatMeter.** It contains only the new
-file and the one-line `.toc` change needed to apply it — kept separate on
-purpose, so it stays easy to diff and easy to reapply whenever you pull a
-fresh copy of the upstream addon.
+## Client Mods Used
+| Mod | Purpose in this addon | Required? |
+|---|---|---|
+| WeirdUtils (`dpslog`) | Preferred structured `COMBAT_LOG_EVENT_UNFILTERED` combat feed | Optional |
+| Nampower | Fallback structured combat events (`SPELL_DAMAGE_EVENT_SELF`, `AUTO_ATTACK_SELF`, `SPELL_HEAL_BY_SELF`, `SPELL_ENERGIZE_BY_SELF`) | Optional |
+| ClassicAPI | `C_UnitAuras.GetUnitAuras` for exact target Sunder Armor stacks & 11-arg `COMBAT_LOG_EVENT_UNFILTERED` support | Optional |
+| SuperWoW | GUID resolution (`UnitExists`) & `UNIT_CASTEVENT` cast confirmation | Optional |
+| UnitXP SP3 | Exact `meleeAutoAttack` distance check for 110% (melee) vs 130% (ranged) aggro threshold | Optional |
 
-## What's in this repo
+The addon works without optional mods; features that depend on them fall back automatically to stock WoW 1.12 behavior.
 
-```
-KTM_ModernAPI/
-├── KTM_ModernAPI.lua     <-- drop into KLHThreatMeter/Code/
-├── toc_patch.txt         <-- the exact line to add, and where
-└── README.md             <-- this file
-```
+## Features
+- **Structured Combat Feed (`KTM_ModernAPI.lua`):** Uses WeirdUtils `dpslog` (preferred) or Nampower (fallback) to feed `klhtm.combatparser` directly without regex text parsing or double-counting.
+- **Target Sunder Armor Stack Display:** Reads real Sunder Armor stacks (`0/5`–`5/5`) on the current hostile target via ClassicAPI `C_UnitAuras` (or `UnitDebuff` fallback) and displays `[Sunder: X/5]` in the raid threat bottom bar without corrupting per-warrior `raidsunder` / `totalsunder` counters.
+- **Accurate Melee/Ranged Aggro Threshold:** Uses UnitXP SP3 `meleeAutoAttack` distance in `KTM_MasterTarget.lua` for the 110% vs 130% aggro-gain bar.
+- **Turtle WoW Threat API (`KTM_TWT.lua`):** Zero-allocation parsing of `TWTv4=` server threat updates.
 
-## What it does
+## What Was Added / Improved
+- **Fixed (`KTM_ModernAPI.lua`):**
+  - Merged duplicate `feeder:SetScript("OnEvent", ...)` calls so `PLAYER_LOGIN` event registration actually runs.
+  - Replaced non-existent global `mod` references with `klhtm`.
+  - Replaced Lua 5.1 `%` operator with Lua 5.0 `math.mod`.
+  - Added selective `klhtm.combatparser.onevent` hook to prevent double-counting threat while preserving non-damaging `special` casts (Taunt, Growl, Feint).
+  - Moved feature detection to `PLAYER_LOGIN`, cached `playerGUID`, handled both 9-arg (`dpslog`) and 11-arg (`ClassicAPI`) `COMBAT_LOG_EVENT_UNFILTERED`, fixed `DAMAGE_SHIELD` / `SPELL_PERIODIC_DAMAGE` `spellid`s, fixed `AUTO_ATTACK_SELF` partial blocks (`victimState == 5`), and disabled `debugTrace` by default.
+  - Replaced destructive `updateplayersunder(UnitName("player"), stacks)` with non-destructive `[Sunder: X/5]` target stack display on the raid bottom bar.
+- **Improved (`KTM_TWT.lua`, `KTM_MasterTarget.lua`, `KTM_Combat.lua`):**
+  - Eliminated per-message `explode()` table allocations and moved `KLHTM_RequestRedraw("raid")` outside the player loop in `KTM_TWT.lua`.
+  - Integrated `KTM_ModernAPI.IsInMeleeRange()` (UnitXP SP3) into `KTM_MasterTarget.lua` aggro-gain calculation.
+  - Throttled `KTM_Combat.lua` `recentattacks` cleanup to `0.1s` instead of running every frame.
 
-`KTM_ModernAPI.lua` detects a set of community client mods at load, and — only
-when present — feeds the addon's real combat-parser pipeline
-(`mod.combatparser`) with structured data instead of chat text. It does
-**not** reimplement any threat logic; it only replaces where the numbers
-come from. With none of these mods installed, it detects their absence and
-KLHThreatMeter behaves exactly as stock.
+## Usage
+- `/ktmapi` — Show detected client mods and active combat feed source (`dpslog` / `nampower` / `stock`).
+- `/ktmapi trace` — Toggle debug trace messages for `KTM_ModernAPI`.
 
-| Mod | What it's used for |
-|---|---|
-| [WeirdUtils](https://codeberg.org/MarcelineVQ/WeirdUtils) (DPSLog) | **Preferred** combat data source — one unified `COMBAT_LOG_EVENT_UNFILTERED` event covering damage, heals, and power gains |
-| [nampower](https://github.com/brues-code/nampower) | Fallback combat data source, used only if DPSLog isn't installed |
-| [ClassicAPI](https://github.com/brues-code/ClassicAPI) | `C_UnitAuras` — reads the real current Sunder Armor stack count off a target, correcting the raid sunder display |
-| [SuperWoW](https://github.com/balakethelock/SuperWoW/wiki) | Real GUIDs and `UNIT_CASTEVENT` for confirmed cast landings |
-| [UnitXP_SP3](https://codeberg.org/konaka/UnitXP_SP3/wiki) | Real distance checks (melee range) |
-
-**[VanillaHelpers](https://github.com/isfir/VanillaHelpers) is deliberately
-not used** — nothing in it touches combat, auras, or unit identity, so
-there's no gap in KLHThreatMeter it would fill.
-
-## Setup for the client mods themselves
-
-1. Get a DLL loader — [VanillaFixes](https://github.com/hannesmann/vanillafixes)
-   is the standard one. Put it in your WoW 1.12 folder alongside `WoW.exe`.
-2. Download each DLL you want and place it in that same folder:
-   - `WeirdUtils.dll` — **DPSLog is bundled inside this**, it is not a
-     separate DLL despite what some copies of its own docs say
-   - `nampower.dll` (optional fallback if you skip WeirdUtils)
-   - `ClassicAPI.dll`
-   - `SuperWoW.dll`
-   - `UnitXP_SP3.dll`
-3. Create/edit `dlls.txt` in that folder, one filename per line:
-   ```
-   WeirdUtils.dll
-   ClassicAPI.dll
-   SuperWoW.dll
-   UnitXP_SP3.dll
-   ```
-4. Launch via `VanillaFixes.exe`, not `WoW.exe` directly.
-
-### Checking what's detected
-
-In-game:
-
-```
-/ktmapi
-```
-
-Prints which mods were detected at load. If something you installed shows
-"no," check `dlls.txt` and confirm you launched via `VanillaFixes.exe`.
-
-## How it works (what this patch actually depends on in upstream)
-
-- **Combat data:** when DPSLog is present, this patch listens for
-  `COMBAT_LOG_EVENT_UNFILTERED`, filters to events the player caused, and
-  writes directly into `mod.combatparser.action` before calling
-  `mod.combatparser.parserstagethree[type]()` — KLHThreatMeter's own real
-  dispatch code, exposed because `KTM_CombatParser.lua` does
-  `mod.combatparser = me`. Only the chat-text-parsing stage is bypassed.
-  nampower's events are used the same way as a fallback.
-- **Sunder Armor:** KLHThreatMeter's existing cast-then-verify tracking
-  (`KTM_Combat.lua`'s `sunder`/`addsunderthreat`/`retractsundercast`) is
-  left completely untouched — it's a solid design on its own. This patch
-  adds a correction on top: on target change, it reads the real current
-  stack count via ClassicAPI and syncs it into the raid sunder display via
-  `mod.table.updateplayersunder()` (from `KTM_Tables.lua`), catching cases
-  cast-tracking alone can't (a different warrior's sunder, a target switch,
-  a boss stripping debuffs).
-
-Because it depends on those specific upstream internals staying stable,
-this is the section to check first if a future KLHThreatMeter update breaks
-the patch.
-
-## Status
-
-Everything this patch reads from an external mod is confirmed against that
-mod's own documentation (DPSLog's full event spec, ClassicAPI's `AuraData`
-field names, nampower's `EVENTS.md`, SuperWoW's and UnitXP_SP3's wikis) —
-nothing here is a guess presented as fact. It has not been run against a
-live client. If something misbehaves, `/ktmapi` plus a note of which mods
-are installed is the fastest way to narrow it down.
-
-## Credits
-
-- [laytya/KLHThreatMeter](https://github.com/laytya/KLHThreatMeter) /
-  [KenKaprielian/KLHThreatMeter](https://github.com/KenKaprielian/KLHThreatMeter) —
-  the addon this patches. Not affiliated with this repo.
-- [WeirdUtils](https://codeberg.org/MarcelineVQ/WeirdUtils),
-  [nampower](https://github.com/brues-code/nampower),
-  [ClassicAPI](https://github.com/brues-code/ClassicAPI),
-  [SuperWoW](https://github.com/balakethelock/SuperWoW),
-  [UnitXP_SP3](https://codeberg.org/konaka/UnitXP_SP3) — the client mods
-  this patch builds on.
+## Credits & License
+- Original addon: Kenco@Perenolde, Plask, LaYt (`KLHThreatMeter`)
+- Client-mod integration & fixes: `KTM_ModernAPI` contributors
+- License: Same as original addon unless stated otherwise.

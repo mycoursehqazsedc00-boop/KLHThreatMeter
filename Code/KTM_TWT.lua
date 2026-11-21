@@ -64,44 +64,51 @@ me.onevent = function()
 	end
 
 end
-local function explode(str, delimiter)
-    local result = {}
-    local from = 1
-    local delim_from, delim_to = find(str, delimiter, from, 1, true)
-    while delim_from do
-        tinsert(result, substr(str, from, delim_from - 1))
-        from = delim_to + 1
-        delim_from, delim_to = find(str, delimiter, from, true)
-    end
-    tinsert(result, substr(str, from))
-    return result
-end
-
 me.processthreatupdate = function(message)
+	local startPos = find(message, me.threatApi, 1, true)
+	if not startPos then return end
 
-	local playersString = substr(message, find(message, me.threatApi) + slen(me.threatApi), slen(message))
+	local from = startPos + slen(me.threatApi)
+	local len = slen(message)
+	local updated = false
 
-    local players = explode(playersString, ';')
-
-    for _, tData in players do
-
-        local msgEx = explode(tData, ':')
-
-        -- udts handling
-        if msgEx[1] and msgEx[2] and msgEx[3] and msgEx[4] and msgEx[5] then
-
-            local player = msgEx[1]
-            local tank = msgEx[2] == '1'
-            local threat = tonumber(msgEx[3])
-            local perc = tonumber(msgEx[4])
-            local melee = msgEx[5] == '1'
-
-			mod.table.updateplayerthreat(player, threat)
-			KLHTM_RequestRedraw("raid")
+	while from <= len do
+		local semi = find(message, ";", from, true)
+		local entryEnd
+		if semi then
+			entryEnd = semi - 1
+		else
+			entryEnd = len
 		end
+
+		if entryEnd >= from then
+			local c1 = find(message, ":", from, true)
+			if c1 and c1 < entryEnd then
+				local c2 = find(message, ":", c1 + 1, true)
+				if c2 and c2 < entryEnd then
+					local c3 = find(message, ":", c2 + 1, true)
+					if c3 and c3 < entryEnd then
+						local c4 = find(message, ":", c3 + 1, true)
+						if c4 and c4 <= entryEnd then
+							local player = substr(message, from, c1 - 1)
+							local threat = tonumber(substr(message, c2 + 1, c3 - 1))
+							if player ~= "" and threat then
+								mod.table.updateplayerthreat(player, threat)
+								updated = true
+							end
+						end
+					end
+				end
+			end
+		end
+
+		if not semi then break end
+		from = semi + 1
 	end
-	
-	return
+
+	if updated then
+		KLHTM_RequestRedraw("raid")
+	end
 end
 
 

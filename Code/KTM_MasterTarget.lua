@@ -414,7 +414,14 @@ me.updatetrueaggrotarget = function()
 		local aggro = mod.table.raiddata[me.mttruetarget];
 
 		if (UnitName("player") ~= me.mttruetarget) then
-			if CheckInteractDistance(mastertargetid, 1) then
+			local inMelee
+			if KTM_ModernAPI and KTM_ModernAPI.IsInMeleeRange then
+				inMelee = KTM_ModernAPI.IsInMeleeRange(mastertargetid)
+			end
+			if inMelee == nil then
+				inMelee = CheckInteractDistance(mastertargetid, 1)
+			end
+			if inMelee then
 				aggro = math.ceil(aggro * mod.data.threatconstants.meleeaggrogain)
 			else
 				aggro = math.ceil(aggro * mod.data.threatconstants.rangeaggrogain)
@@ -466,7 +473,14 @@ me.recalculateaggrogain = function()
 			
 			else
 				-- now check our range to the mob
-				if CheckInteractDistance(targetname, 1) then
+				local inMelee
+				if KTM_ModernAPI and KTM_ModernAPI.IsInMeleeRange then
+					inMelee = KTM_ModernAPI.IsInMeleeRange(targetname)
+				end
+				if inMelee == nil then
+					inMelee = CheckInteractDistance(targetname, 1)
+				end
+				if inMelee then
 					-- we're in melee range 
 					newaggrogain = math.ceil(mod.table.raiddata[mobtarget] * mod.data.threatconstants.meleeaggrogain)
 					
