@@ -220,6 +220,27 @@ local HITINFO_CRITICALHIT = 128 -- 0x80
 
 local POWERTYPE_TO_KEY = { [0] = "mana", [1] = "rage", [3] = "energy" }
 
+-- Combat log school bitmask (CLEU) and enum index (Nampower) -> localized SPELL_SCHOOL*_CAP
+local SCHOOL_MASK_TO_CAP = {
+	[1]  = SPELL_SCHOOL0_CAP, -- Physical
+	[2]  = SPELL_SCHOOL1_CAP, -- Holy
+	[4]  = SPELL_SCHOOL2_CAP, -- Fire
+	[8]  = SPELL_SCHOOL3_CAP, -- Nature
+	[16] = SPELL_SCHOOL4_CAP, -- Frost
+	[32] = SPELL_SCHOOL5_CAP, -- Shadow
+	[64] = SPELL_SCHOOL6_CAP, -- Arcane
+}
+
+local SCHOOL_INDEX_TO_CAP = {
+	[0] = SPELL_SCHOOL0_CAP,
+	[1] = SPELL_SCHOOL1_CAP,
+	[2] = SPELL_SCHOOL2_CAP,
+	[3] = SPELL_SCHOOL3_CAP,
+	[4] = SPELL_SCHOOL4_CAP,
+	[5] = SPELL_SCHOOL5_CAP,
+	[6] = SPELL_SCHOOL6_CAP,
+}
+
 local function ResetAction()
 	if not klhtm or not klhtm.combatparser then return false end
 	local a = klhtm.combatparser.action
@@ -242,7 +263,7 @@ local function RunStageThree(actionType)
 	end
 end
 
-local function FeedAttack(target, spellname, spellid, amount, iscrit)
+local function FeedAttack(target, spellname, spellid, amount, iscrit, spellschool)
 	if not amount or amount <= 0 then return end
 	if not ResetAction() then return end
 	local a = klhtm.combatparser.action
@@ -250,6 +271,7 @@ local function FeedAttack(target, spellname, spellid, amount, iscrit)
 	a.spellname = spellname or ""
 	a.spellid = spellid or ""
 	a.damage = amount
+	a.spellschool = spellschool or ""
 	if iscrit then
 		a.iscrit = true
 	else
@@ -309,8 +331,11 @@ local function HookCombatParser()
 			local stage3 = cp.parserstagethree
 			local origAttack = stage3.attack
 			stage3.attack = NoOp
-			origOnevent()
+			local ok, err = pcall(origOnevent)
 			stage3.attack = origAttack
+			if not ok then
+				error(err)
+			end
 			return
 		end
 
@@ -358,19 +383,19 @@ local function HandleCLEU()
 		end
 
 	elseif sub == "SPELL_DAMAGE" or sub == "RANGE_DAMAGE" or sub == "DAMAGE_SPLIT" then
-		-- p1=spellId, p2=spellName, p4=amount, p10=critical
+		-- p1=spellId, p2=spellName, p3=spellSchool, p4=amount, p10=critical
 		if p4 then
-			FeedAttack(target, p2, nil, p4, p10)
+			FeedAttack(target, p2, nil, p4, p10, SCHOOL_MASK_TO_CAP[p3])
 		end
 
 	elseif sub == "SPELL_PERIODIC_DAMAGE" then
 		if p4 then
-			FeedAttack(target, p2, "dot", p4, p10)
+			FeedAttack(target, p2, "dot", p4, p10, SCHOOL_MASK_TO_CAP[p3])
 		end
 
 	elseif sub == "DAMAGE_SHIELD" then
 		if p4 then
-			FeedAttack(target, p2, "damageshield", p4, p10)
+			FeedAttack(target, p2, "damageshield", p4, p10, SCHOOL_MASK_TO_CAP[p3])
 		end
 
 	elseif sub == "SPELL_HEAL" or sub == "SPELL_PERIODIC_HEAL" then
@@ -443,10 +468,10 @@ feeder:SetScript("OnEvent", function()
 
 	if event == "SPELL_DAMAGE_EVENT_SELF" then
 		-- targetGuid, casterGuid, spellId, amount, mitigationStr, hitInfo, spellSchool, effectAuraStr
-		local targetGUID, _, spellId, amount, _, hitInfo = arg1, arg2, arg3, arg4, arg5, arg6
+		local targetGUID, _, spellId, amount, _, hitInfo, spellSchool = arg1, arg2, arg3, arg4, arg5, arg6, arg7
 		if targetGUID and spellId and amount then
 			FeedAttack(M.NameFromGUID(targetGUID) or UnitName("target"),
-				SpellName(spellId), nil, amount, hitInfo == 2)
+				SpellName(spellId), nil, amount, hitInfo == 2, SCHOOL_INDEX_TO_CAP[spellSchool])
 		end
 
 	elseif event == "AUTO_ATTACK_SELF" then

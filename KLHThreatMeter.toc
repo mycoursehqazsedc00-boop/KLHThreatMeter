@@ -6,9 +6,11 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## Version: 17.40.251
+## OptionalDeps: CombatHub
 ## SavedVariablesPerCharacter: KLHTM_SavedVariables
 Code\KTM_Core.lua
 Code\KTM_ModernAPI.lua
+Code\KTM_CombatHub.lua
 Code\Localisation\KTM_Localisation.lua
 Code\Localisation\KTM_enUS.lua
 Code\Localisation\KTM_ruRU.lua

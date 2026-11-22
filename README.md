@@ -10,6 +10,7 @@
 | ClassicAPI | `C_UnitAuras.GetUnitAuras` for exact target Sunder Armor stacks & 11-arg `COMBAT_LOG_EVENT_UNFILTERED` support | Optional |
 | SuperWoW | GUID resolution (`UnitExists`) & `UNIT_CASTEVENT` cast confirmation | Optional |
 | UnitXP SP3 | Exact `meleeAutoAttack` distance check for 110% (melee) vs 130% (ranged) aggro threshold | Optional |
+| **CombatHub** | Optional shared combat event coordinator (`Code\KTM_CombatHub.lua`) that routes `KTM_ModernAPI` combat events and self-filtered `UNIT_CASTEVENT` through a single hub listener | Optional |
 
 The addon works without optional mods; features that depend on them fall back automatically to stock WoW 1.12 behavior.
 
