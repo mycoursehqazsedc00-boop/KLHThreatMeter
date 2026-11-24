@@ -32,6 +32,7 @@ CombatHub:OnPostLogin(function()
             "AUTO_ATTACK_SELF",
             "SPELL_HEAL_BY_SELF",
             "SPELL_ENERGIZE_BY_SELF",
+            "DAMAGE_SHIELD_SELF",
         }
         local i
         for i = 1, table.getn(npEvents) do

@@ -69,7 +69,7 @@ me.onupdate = function()
 	
 	-- check if you are still an assistant
 	if mod.unit.isplayerofficer(UnitName("player")) == nil then
-		me.lastmtsender = ""
+		me.lastmtauthor = ""
 		return
 	end
 	
@@ -280,7 +280,7 @@ me.mastertargettarget = nil
 --! This variable is referenced by these modules: guiraid, 
 me.updateaggrogain = function()
 	
-	if mod.boss.mastertarget == nil then
+	if me.mastertarget == nil then
 		me.recalculateaggrogain()
 	else
 		me.updatetrueaggrotarget()
@@ -313,7 +313,7 @@ me.updatetrueaggrotarget = function()
 	if mastertargetid == nil then
 		
 		me.mttruetarget = me.unknowntarget
-		me.mtcurrenttarget = me.unknownuarget
+		me.mtcurrenttarget = me.unknowntarget
 		mod.table.raiddata[mod.string.get("misc", "aggrogain")] = nil
 		
 		return
@@ -338,7 +338,7 @@ me.updatetrueaggrotarget = function()
 					mod.out.printtrace(string.format("Target changed from bad to %s.", targetnow))
 				end
 				
-				if (me.isknockbackdiscoveryactive == true) and (targetnow == UnitName("player")) then
+				if (mod.boss.isspellreportingactive == true) and (targetnow == UnitName("player")) then
 					mod.net.sendmessage("aggrogain " .. mod.table.getraidthreat())
 				end
 			end
@@ -365,7 +365,7 @@ me.updatetrueaggrotarget = function()
 				mod.out.printtrace(string.format("CurrentTarget changed from bad to %s.", targetnow))
 			end
 			
-			if (me.isknockbackdiscoveryactive == true) and (targetnow == UnitName("player")) then
+			if (mod.boss.isspellreportingactive == true) and (targetnow == UnitName("player")) then
 				mod.net.sendmessage("aggrogain " .. mod.table.getraidthreat())
 			end
 		end
@@ -408,7 +408,7 @@ me.updatetrueaggrotarget = function()
 	end
 	
 	-- update the AggroGain virtual player
-	if ((me.mttruetarget ~= nil) and (me.truetarget ~= me.unknowntarget) and
+	if ((me.mttruetarget ~= nil) and (me.mttruetarget ~= me.unknowntarget) and
 		(mod.table.raiddata[me.mttruetarget] ~= nil)) then
 		
 		local aggro = mod.table.raiddata[me.mttruetarget];

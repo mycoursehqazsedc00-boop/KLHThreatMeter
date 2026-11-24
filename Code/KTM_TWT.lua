@@ -46,10 +46,11 @@ me.onupdate = function()
 			return false
 		end
 		if UnitAffectingCombat('player') and UnitAffectingCombat('target') then
+			local rows = (KLHTM_GuiOptions and KLHTM_GuiOptions.raid and KLHTM_GuiOptions.raid.rows) or 10
 			if raid > 0 then
-				SendAddonMessage(me.UDTS , "limit=" .. KLHTM_GuiOptions.raid.rows, "RAID")
+				SendAddonMessage(me.UDTS , "limit=" .. rows, "RAID")
 			elseif party > 0 then
-				SendAddonMessage(me.UDTS , "limit=" .. KLHTM_GuiOptions.raid.rows, "PARTY")
+				SendAddonMessage(me.UDTS , "limit=" .. rows, "PARTY")
 			end
 		end
 	end

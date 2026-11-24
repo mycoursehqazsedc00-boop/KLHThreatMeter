@@ -71,8 +71,8 @@ me.findnearbybossname = function()
 	local x
 	
 	for x = 1, 40 do
-		if UnitClassification("raid" .. x) == "worldboss" then
-			return UnitName("raid" .. x)
+		if UnitClassification("raid" .. x .. "target") == "worldboss" then
+			return UnitName("raid" .. x .. "target")
 		end
 	end
 	
@@ -128,7 +128,7 @@ me.isplayerofficer = function(playername)
 			
 			name, rank = GetRaidRosterInfo(i)
 			if name == playername then
-				if rank > -1 then
+				if rank and rank > 0 then
 					return true
 				else
 					return nil

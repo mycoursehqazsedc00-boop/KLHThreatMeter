@@ -315,6 +315,8 @@ function KLHTM_GetSelfData()
 						 -- that can be added to mod.table.mydata
 			data[x] = {["name"] = "", ["dam"] = 0, ["hits"] = 0, ["rage"] = 0, ["threat"] = 0, ["pc"] = 0,};
 		end
+		GetSelfData_data = data;
+		GetSelfData_totals = totals;
 	end
 	
 	local totalData = mod.table.mydata[mod.string.get("threatsource", "total")];

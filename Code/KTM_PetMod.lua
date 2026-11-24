@@ -1,8 +1,9 @@
 
 local mod = klhtm
 local me = {}
-local petthreat
+local petthreat = 0
 local petincombat = false
+local lastPetUpdate = 0
 mod.pet = me
 
 --[[
@@ -34,6 +35,12 @@ me.lclass, me.class = UnitClass("player")
 onupdate() function, called from Core.lua
 ]]
 me.onupdate = function()
+	local timenow = GetTime()
+	if timenow < lastPetUpdate + 0.25 then
+		return
+	end
+	lastPetUpdate = timenow
+
 	-- update combat state
 	if UnitAffectingCombat("pet") then
     if petincombat == false then
@@ -105,7 +112,7 @@ me.addpetthreat = function(value)
 		petthreat = 0
 	end
 
-	petthreat = petthreat + value
+	petthreat = (petthreat or 0) + value
 	mod.table.updateplayerthreat(UnitName("pet"), petthreat)
 	KLHTM_RequestRedraw("raid")
 	return
@@ -146,6 +153,7 @@ local spellaggro = function(spellname, rank)
 	local value = spellaggrobase[spellname][rank]
 	if me.class == "WARLOCK" then
 		local _, _, _, _, impvoid = GetTalentInfo(2,5)
+		impvoid = impvoid or 0
 		if impvoid > 0 then
 			local mod = 1 + (impvoid/10)
 			value = value * mod
@@ -156,10 +164,13 @@ end
 
 me.getthreatvalue = function(spellname)
 	spellname = me.getenglishspell(spellname)
-	if not spellaggrolevel[spellname] then prin("key not found in spelldata "..spellname); return 0; end
+	if not spellaggrolevel[spellname] then mod.out.print("key not found in spelldata " .. tostring(spellname)); return 0; end
 	local i = 1
-	while UnitLevel('pet') < spellaggrolevel[spellname][i] do
+	while spellaggrolevel[spellname][i] and UnitLevel('pet') < spellaggrolevel[spellname][i] do
 		i = i + 1
+	end
+	if not spellaggrobase[spellname][i] then
+		return 0
 	end
 	return spellaggro(spellname, i)
 end

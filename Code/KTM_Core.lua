@@ -91,7 +91,7 @@ me.onload = function()
 	isKLHLoaded = 1
 	-- initialise all submodules
 	for key, subtable in me do
-		if type(subtable) == "table" and subtable.onload and subtable.isenabled ~= "false" then
+		if type(subtable) == "table" and subtable.onload and subtable.isenabled ~= false and subtable.isenabled ~= "false" then
 			subtable.onload()
 		end
 	end
@@ -113,7 +113,7 @@ me.onload = function()
 	
 	-- onloadcomplete
 	for key, subtable in me do
-		if type(subtable) == "table" and subtable.onloadcomplete and subtable.isenabled ~= "false" then
+		if type(subtable) == "table" and subtable.onloadcomplete and subtable.isenabled ~= false and subtable.isenabled ~= "false" then
 			subtable.onloadcomplete()
 		end
 	end
@@ -137,7 +137,7 @@ me.onupdate = function()
 	end
 	
 	for key, subtable in me do
-		if type(subtable) == "table" and subtable.onupdate and subtable.isenabled ~= "false" then
+		if type(subtable) == "table" and subtable.onupdate and subtable.isenabled ~= false and subtable.isenabled ~= "false" then
 			me.diag.logmethodcall(key, "onupdate")
 		end
 	end
@@ -156,7 +156,7 @@ me.onevent = function()
 		-- 1) The subtable is a valid module - is a table and has a .onevent property.
 		-- 2) The subtable is not disabled
 		-- 3) The subtable has registered the event
-		if type(subtable) == "table" and subtable.onevent and subtable.isenabled ~= "false" and me.events[key][event] then
+		if type(subtable) == "table" and subtable.onevent and subtable.isenabled ~= false and subtable.isenabled ~= "false" and me.events[key][event] then
 			
 			me.diag.logmethodcall(key, "onevent")
 		end

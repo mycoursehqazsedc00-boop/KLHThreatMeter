@@ -262,6 +262,7 @@ me.checkspellvaluesyntax = function(allvalues)
 	end
 		
 	elseif parameter == "effectonmiss" then
+		value = allvalues[4]
 		
 		if value == "true" then
 			value = true
@@ -275,8 +276,9 @@ me.checkspellvaluesyntax = function(allvalues)
 		end
 		
 	elseif parameter == "type" then
+		value = allvalues[4]
 		
-		if (value ~= "physical") or (value ~= "debuff") or (value ~= "spell") then
+		if (value ~= "physical") and (value ~= "debuff") and (value ~= "spell") then
 			
 			message = "The argument |cffffff00" .. tostring(allvalues[4]) .. "|r is not one of |cffffff00 physical debuff spell|r."
 			return nil, message
@@ -311,7 +313,7 @@ me.versionquery = function()
 	local key
 
 	for key, _ in me.raidversions do
-		table.remove(me.raidversions, key)
+		me.raidversions[key] = nil
 	end
 	
 	-- set the timeout for responses
@@ -383,7 +385,7 @@ me.checkversionquery = function()
 			message = message .. " }."
 			mod.out.print(message)
 			
-			table.remove(me.raidversions, key)
+			me.raidversions[key] = nil
 		end
 		
 		-- Now print the people who have out of date versions

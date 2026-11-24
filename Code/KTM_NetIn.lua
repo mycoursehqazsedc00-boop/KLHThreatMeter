@@ -144,6 +144,10 @@ me.commands =
 			return
 		end
 	
+		if mod.twt and mod.twt.tWOW then
+			return true
+		end
+
 		mod.table.updateplayerthreat(author, value)
 		KLHTM_RequestRedraw("raid")
 		
@@ -278,7 +282,7 @@ me.commands =
 			
 			_, _, value1, value2 = string.find(tostring(data), "(-?%d+) (-?%d+)")
 						
-			if (tostring(number) == nil) or (tostring(number) == nil) then
+			if (tonumber(value1) == nil) or (tonumber(value2) == nil) then
 				return
 			end
 			

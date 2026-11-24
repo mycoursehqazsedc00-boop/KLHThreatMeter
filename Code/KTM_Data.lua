@@ -380,7 +380,7 @@ me.gettalentrank = function(talent)
 	local rank
 	_, _, _, _, rank = GetTalentInfo(info[1], info[2])
 	
-	return rank
+	return rank or 0
 end
 
 -- This is a pretty simple function to print out the talents you havee that the mod is checking for
@@ -535,7 +535,7 @@ me.getsetpieces = function(setname, isdebug)
 	local setlist = me.itemsets[setname]
 	
 	if setlist == nil then
-		me.out.printtrace("assertion", string.format("The set |cffffff00%s|r does not exist in our database.", setname))
+		mod.out.printtrace(string.format("The set |cffffff00%s|r does not exist in our database.", tostring(setname)))
 		return 0
 	end
 	

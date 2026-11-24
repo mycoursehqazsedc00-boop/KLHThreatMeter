@@ -315,6 +315,9 @@ end
 
 -- used by GetRaidData(). Defined at the class level to reduce memory use.
 local GetRaidData_data;
+local function SortRaidDataByThreat(a, b)
+	return a.threat > b.threat;
+end
 ------------------------------------------------------------------------------
 -- Makes a copy of the raid threat data from KLHTM_RaidData for use by 
 -- KLHTM_DrawRaidFrame and performs some processing.
@@ -364,7 +367,7 @@ function KLHTM_GetRaidData()
 	end
 	table.setn(data, rowCount);
 	
-	table.sort(data, function(a,b) return a.threat > b.threat; end); 
+	table.sort(data, SortRaidDataByThreat); 
 	
 	-- determine the %threat reference value
 	-- this part is highly suspect. Need the updated boss module, then a recode
@@ -499,6 +502,9 @@ end
 
 -- used to unlocalise class names
 local _classes = {"warrior", "druid", "priest", "shaman", "mage", "warlock", "rogue", "hunter", "paladin"}
+local _playerColour = {["r"] = 1.0, ["g"] = 0, ["b"] = 0};
+local _aggroColour = {["r"] = 0, ["g"] = 0, ["b"] = 1.0};
+local _unknownColour = {["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5};
 
 ------------------------------------------------------------------------------
 -- Returns the class colours of the specified player
@@ -511,11 +517,11 @@ function KLHTM_GetClassColours(playerName)
 	
 	-- apply pre-defined colours
 	if (playerName == UnitName("player")) then
-		return {["r"] = 1.0, ["g"] = 0, ["b"] = 0};
+		return _playerColour;
 	end
 	
 	if (playerName == mod.string.get("misc", "aggrogain")) then
-		return {["r"] = 0, ["g"] = 0, ["b"] = 1.0};
+		return _aggroColour;
 	end
 	
 	className = mod.table.raidclasses[playerName];
@@ -544,9 +550,9 @@ function KLHTM_GetClassColours(playerName)
 	className = string.upper(className)
 	
 	if (className == "") then
-		return {["r"] = 0.5, ["g"] = 0.5, ["b"] = 0.5};
+		return _unknownColour;
 	else
-		return RAID_CLASS_COLORS[className];
+		return RAID_CLASS_COLORS[className] or _unknownColour;
 	end
 end
 

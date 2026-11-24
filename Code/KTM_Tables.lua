@@ -129,7 +129,7 @@ me.onupdate = function()
                                 me.raidsunder[x] = nil
 				
 				-- might need to update gui
-				KLHTM_RequestRedraw("true")
+				KLHTM_RequestRedraw("raid")
 			
 			elseif me.raiddata[x] ~= 0 then
 				-- they are still in the raid group, but they haven't updated for some time, probably becaue they were disconnected. Set their threat to 0. Also reset their UpdateTimes value.
@@ -142,7 +142,7 @@ me.onupdate = function()
 					mod.out.printtrace(string.format("Resetting %s's threat, since he hasn't updated for a while.", x))
 				end
 				
-				KLHTM_RequestRedraw("true")
+				KLHTM_RequestRedraw("raid")
 			end
 		end
 	end
@@ -262,7 +262,9 @@ me.redoraidclasses = function()
 		
 		for x = 1, numparty do
 			_, class = UnitClass("party" .. x)
-			me.raidclasses[UnitName("party" .. x)] = string.lower(class)
+			if class then
+				me.raidclasses[UnitName("party" .. x)] = string.lower(class)
+			end
 		end
 		
 		-- also do yourself

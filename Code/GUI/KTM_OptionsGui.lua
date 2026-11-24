@@ -402,12 +402,13 @@ function KLHTM_SyncOptionsGui()
 	gui.raid.resize.frame:SetChecked(options.raid.resize);
 	gui.raid.aggro.frame:SetChecked(options.raid.showAggroGain);
 	gui.raid.abbreviate.frame:SetChecked(options.raid.abbreviate);
+	gui.raid.bottom.frame:SetChecked(options.raid.hideBottomBar);
 
 	-- rows slider
-	local temp = gui.gen.scale.frame:GetScript("OnValueChanged");
-	gui.gen.scale.frame:SetScript("OnValueChanged", nil);
+	local temp = gui.raid.rows.frame:GetScript("OnValueChanged");
+	gui.raid.rows.frame:SetScript("OnValueChanged", nil);
 	gui.raid.rows.frame:SetValue(options.raid.rows);
-	gui.gen.scale.frame:SetScript("OnValueChanged", temp);
+	gui.raid.rows.frame:SetScript("OnValueChanged", temp);
 	gui.raid.rows.value:SetText(options.raid.rows);
 end
 

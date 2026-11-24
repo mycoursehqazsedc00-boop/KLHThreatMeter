@@ -18,6 +18,7 @@ local mod = klhtm
 local me, _ = {}
 mod.combat = me
 local lastSunderTime = 0
+local lastSunderRangeFail = 0
 
 --[[
 KTM_Combat.lua
@@ -361,7 +362,7 @@ me.normalattack = function(spellname, spellid, damage, isdot, target, iscrit, sp
 				me.event.threat = me.event.threat * 0.75
 			
 			-- 2) 25% less for some dots
-			elseif mod.data.spellmatchesset("Plagueheart 6 Bonus", abilityid, nil) == true then
+			elseif mod.data.spellmatchesset("Plagueheart 6 Bonus", spellid, nil) == true then
 				me.event.threat = me.event.threat * 0.75
 			end
 		end
@@ -766,8 +767,8 @@ me.sunder = function()
 	
 		-- 2) locate sunder armor in the spell book
 		for i = 1, numspells do
-			if GetSpellName(me.spellbooksunderindex + i, "spell") == mod.string.get("spell", "sunder") then
-				me.spellbooksunderindex = me.spellbooksunderindex + i
+			if GetSpellName(i, "spell") == mod.string.get("spell", "sunder") then
+				me.spellbooksunderindex = i
 				break
 				
 			elseif i == numspells then

@@ -187,6 +187,9 @@ me.parserstagetwo =
 }
 
 
+me.lastshortupdatetime = 0.0
+me.shortupdateinterval = 0.2
+
 me.lastupdatetime = 0.0			-- return value of GetTime()
 me.longupdateinterval = 1.0 	-- at least this time in seconds will pass between long updates
 
@@ -202,11 +205,14 @@ me.globalthreat	-	frequent update
 ]]
 me.onupdate = function()
 	
+	local timenow = GetTime()
+	if timenow < me.lastshortupdatetime + me.shortupdateinterval then
+		return
+	end
+	me.lastshortupdatetime = timenow
+
 	-- short updates
 	me.redostates()
-	
-	-- check for long updates
-	local timenow = GetTime()
 	
 	-- long updates
 	if timenow > me.lastupdatetime + me.longupdateinterval then

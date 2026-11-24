@@ -88,6 +88,12 @@ function M.NameFromGUID(guid)
 		local token = UnitTokenFromGUID(guid)
 		if token then return UnitName(token) end
 	end
+	if M.hasSuperWoW or M.hasNampower then
+		local ok, name = pcall(UnitName, guid)
+		if ok and name and name ~= "" and name ~= "Unknown" then
+			return name
+		end
+	end
 	if guid == M.GetGUID("target") then return UnitName("target") end
 	if guid == M.GetGUID("player") then return UnitName("player") end
 	if guid == M.GetGUID("pet") then return UnitName("pet") end
@@ -434,6 +440,7 @@ feeder:SetScript("OnEvent", function()
 			this:RegisterEvent("AUTO_ATTACK_SELF")
 			this:RegisterEvent("SPELL_HEAL_BY_SELF")
 			this:RegisterEvent("SPELL_ENERGIZE_BY_SELF")
+			this:RegisterEvent("DAMAGE_SHIELD_SELF")
 			HookCombatParser()
 		else
 			M.combatSource = "stock"
@@ -468,10 +475,26 @@ feeder:SetScript("OnEvent", function()
 
 	if event == "SPELL_DAMAGE_EVENT_SELF" then
 		-- targetGuid, casterGuid, spellId, amount, mitigationStr, hitInfo, spellSchool, effectAuraStr
-		local targetGUID, _, spellId, amount, _, hitInfo, spellSchool = arg1, arg2, arg3, arg4, arg5, arg6, arg7
+		local targetGUID, _, spellId, amount, _, hitInfo, spellSchool, effectAuraStr = arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
 		if targetGUID and spellId and amount then
+			local spellid = nil
+			if type(effectAuraStr) == "string" then
+				local _, _, auraType = string.find(effectAuraStr, "^[^,]*,[^,]*,[^,]*,([^,]*)")
+				local auraNum = tonumber(auraType)
+				if auraNum and auraNum > 0 then
+					spellid = "dot"
+				end
+			end
 			FeedAttack(M.NameFromGUID(targetGUID) or UnitName("target"),
-				SpellName(spellId), nil, amount, hitInfo == 2, SCHOOL_INDEX_TO_CAP[spellSchool])
+				SpellName(spellId), spellid, amount, hitInfo == 2, SCHOOL_INDEX_TO_CAP[spellSchool])
+		end
+
+	elseif event == "DAMAGE_SHIELD_SELF" then
+		-- unitGuid, targetGuid, damage, spellSchool
+		local _, targetGUID, amount, spellSchool = arg1, arg2, arg3, arg4
+		if targetGUID and amount and amount > 0 then
+			FeedAttack(M.NameFromGUID(targetGUID) or UnitName("target"),
+				nil, "damageshield", amount, false, SCHOOL_INDEX_TO_CAP[spellSchool])
 		end
 
 	elseif event == "AUTO_ATTACK_SELF" then

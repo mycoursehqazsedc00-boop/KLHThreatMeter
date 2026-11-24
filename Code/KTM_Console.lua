@@ -331,6 +331,11 @@ me.subclui.test =
 				local name
 				local source
 				
+				if type(mod.net.getchannel) ~= "function" then
+					mod.out.print("Channel info: N/A (addon uses SendAddonMessage).")
+					return
+				end
+
 				number, name, source = mod.net.getchannel()
 				
 				if number == 0 then
@@ -352,7 +357,7 @@ me.subclui.test =
 					local value
 					
 					for key, value in mod.netin.messagelog do
-						mod.out.print(string.format("|cffffff00%s: |r%d bytes in %d messages (%d average).", key, value.bytes, value.count, math.floor(0.5 + value.bytes / math.max(value.count, 0))))						
+						mod.out.print(string.format("|cffffff00%s: |r%d bytes in %d messages (%d average).", key, value.bytes, value.count, math.floor(0.5 + value.bytes / math.max(value.count, 1))))						
 					end 
 				end	
 		},

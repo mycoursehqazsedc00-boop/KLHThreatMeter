@@ -325,7 +325,7 @@ me.onupdate = function()
 			end
 			
 			-- threat of the boss' new target
-			local newthreat = mod.table.raiddata[me.bosstarget] 
+			local newthreat = mod.table.raiddata[newtarget] 
 			if newthreat == nil then
 				newthreat = "?"
 			end
@@ -580,6 +580,7 @@ me.triggerfunctions =
 							mod.combat.event.threat = 2000
 							mod.combat.event.damage = 0
 							mod.combat.event.rage = 0
+							mod.combat.event.sunder = 0
 							
 							mod.combat.addattacktodata(mod.string.get("threatsource", "threatwipe"), mod.combat.event)
 							
@@ -907,6 +908,7 @@ me.parsebossattack = function(message, event)
 	mod.combat.event.damage = 0
 	mod.combat.event.rage = 0
 	mod.combat.event.threat = threatchange
+	mod.combat.event.sunder = 0
 	
 	mod.combat.addattacktodata(mod.string.get("threatsource", "threatwipe"), mod.combat.event)
 	
